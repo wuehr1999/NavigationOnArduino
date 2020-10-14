@@ -13,6 +13,7 @@ NavPoint p2(48.997873, 12.837614);
 
 void setup() {
   Serial.begin(115200);
+  while(!Serial);
 
 }
 
@@ -27,4 +28,5 @@ void loop() {
   Serial.println(distance);
   Serial.println("Bearing in deg:");
   Serial.println(bearing);
+  delay(3000);
 }
