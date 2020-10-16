@@ -55,15 +55,23 @@ public:
     float calculateDistance(NavPoint point);
 
     /*!
-    * @brief Calculates bearing to second point
+    * @brief Calculates initial bearing to second point
     * @param p2, second NavPoint 
     * @retval bearing from -180 deg to 180 deg
     */
     float calculateBearing(NavPoint point);
 
+    /*!
+    * @brief Calculates perpendicular distance of point to track
+    * @param trackpoint1, first point defining track
+    * @param trackpoint2, second point defining track
+    * @retval distance to track in meters ( negative sign means left )
+    */
+    float calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackpoint2);
+
 private:
     float latitude, longitude;
-
+    float earthRadius;
 };
 
 #endif

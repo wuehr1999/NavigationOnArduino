@@ -1,5 +1,5 @@
 #include "NavPoint.h"
-
+#include <Arduino.h>
 NavPoint::NavPoint()
 {
     NavPoint(0, 0);
@@ -9,6 +9,8 @@ NavPoint::NavPoint(float latitude, float longitude)
 {
     this->latitude=latitude;
     this->longitude=longitude;
+
+    earthRadius = 6371000.0;
 }
 
 NavPoint::~NavPoint(){}
@@ -47,7 +49,7 @@ float NavPoint::calculateDistance(NavPoint point)
             cos(latitude1R) * cos(latitude2R) *
             sin(dlong/2.0) * sin(dlong/2.0);
 
-    return 6371000* 2 * atan2(sqrt(a), sqrt(1-a));
+    return earthRadius * 2.0 * atan2(sqrt(a), sqrt(1-a));
 
 }
 
@@ -63,6 +65,22 @@ float NavPoint::calculateBearing(NavPoint point)
     float x = cos(latitude1R)*sin(latitude2R) -
             sin(latitude1R)*cos(latitude2R)*cos(longitude2R-longitude1R);
   
-  return (atan2(y, x)/(2*M_PI))*360.0;
+  return (atan2(y, x)/(2.0*M_PI))*360.0;
+}
+
+float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackpoint2)
+{
+	float dist = trackpoint1.calculateDistance(*this) / earthRadius;
+
+	float bearing1 = (trackpoint1.calculateBearing(*this) + 180) * M_PI / 180.0;
+
+	float bearing2 = (trackpoint1.calculateBearing(trackpoint2) + 180) * M_PI / 180.0;
+
+	float dxt = asin(sin(dist) * sin(bearing1 - bearing2));
+
+	float dat = dxt;//acos(cos(dist) / abs(cos(dxt)));
+
+	
+	return dat * earthRadius;
 }
 
