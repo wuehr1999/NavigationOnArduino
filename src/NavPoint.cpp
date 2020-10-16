@@ -78,7 +78,7 @@ float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackp
 
 	float dxt = asin(sin(dist) * sin(bearing1 - bearing2));
 
-	float dat = dxt;//acos(cos(dist) / abs(cos(dxt)));
+	float dat = dxt;
 
 	
 	return dat * earthRadius;
