@@ -84,3 +84,29 @@ float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackp
 	return dat * earthRadius;
 }
 
+float NavPoint::calculateDeltaAngle(float courseHeading, NavPoint destinationPoint)
+{
+	if(courseHeading > 180)
+    	{
+        	courseHeading = 180;
+    	}
+    	else if(courseHeading < -180)
+    	{
+        	courseHeading = -180;
+    	}
+
+	float destinationBearing = calculateBearing(destinationPoint);
+
+	float deltaAngle = destinationBearing - courseHeading;
+
+	if(deltaAngle > 180)
+   	{
+        	deltaAngle -= 360;
+    	}
+    	else if(deltaAngle < -180)
+    	{
+        	deltaAngle += 360;
+    	}
+	
+	return deltaAngle;
+}

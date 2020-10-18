@@ -69,6 +69,14 @@ public:
     */
     float calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackpoint2);
 
+    /*!
+    * @brief Calculates angle between current course heading and destination course
+    * @param courseHeading, heading of course
+    * @param destinationpoint, point of destination
+    * @retval bearing difference from -180 deg to 180 deg 
+    */
+    float calculateDeltaAngle(float courseHeading, NavPoint destinationPoint);
+
 private:
     float latitude, longitude;
     float earthRadius;
