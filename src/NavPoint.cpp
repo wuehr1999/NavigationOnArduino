@@ -9,8 +9,6 @@ NavPoint::NavPoint(float latitude, float longitude)
 {
     this->latitude=latitude;
     this->longitude=longitude;
-
-    earthRadius = 6371000.0;
 }
 
 NavPoint::~NavPoint(){}
@@ -49,7 +47,7 @@ float NavPoint::calculateDistance(NavPoint point)
             cos(latitude1R) * cos(latitude2R) *
             sin(dlong/2.0) * sin(dlong/2.0);
 
-    return earthRadius * 2.0 * atan2(sqrt(a), sqrt(1-a));
+    return 6371000.0 * 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
 
 }
 
@@ -65,12 +63,22 @@ float NavPoint::calculateBearing(NavPoint point)
     float x = cos(latitude1R)*sin(latitude2R) -
             sin(latitude1R)*cos(latitude2R)*cos(longitude2R-longitude1R);
   
-  return (atan2(y, x)/(2.0*M_PI))*360.0;
+    float bearing = atan2(y, x)/ M_PI * 180.0;
+    while(bearing < -180.0)
+    {
+	bearing += 360.0;
+    }
+    while(bearing > 180.0)
+    {
+  	bearing -= 360.0;
+    }
+
+    return bearing;
 }
 
 float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackpoint2)
 {
-	float dist = trackpoint1.calculateDistance(*this) / earthRadius;
+	float dist = trackpoint1.calculateDistance(*this) / 6371000.0;
 
 	float bearing1 = (trackpoint1.calculateBearing(*this) + 180) * M_PI / 180.0;
 
@@ -81,7 +89,7 @@ float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1, NavPoint trackp
 	float dat = dxt;
 
 	
-	return dat * earthRadius;
+	return dat * 6371000.0;
 }
 
 float NavPoint::calculateDeltaAngle(float courseHeading, NavPoint destinationPoint)
@@ -109,4 +117,13 @@ float NavPoint::calculateDeltaAngle(float courseHeading, NavPoint destinationPoi
     	}
 	
 	return deltaAngle;
+}
+
+void NavPoint::xyPixelsFromStartPoint(NavPoint startPoint, int *x, int *y, float metersPerPixel)
+{
+    float distance = startPoint.calculateDistance(NavPoint(latitude, longitude));
+    float bearing = startPoint.calculateBearing(NavPoint(latitude, longitude)) - 90.0;
+
+    *x = (int)(cos(bearing * M_PI / 180.0) * distance / metersPerPixel);
+    *y = (int)(sin(bearing * M_PI / 180.0) * distance / metersPerPixel);
 }

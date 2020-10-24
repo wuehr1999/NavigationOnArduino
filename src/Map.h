@@ -34,6 +34,58 @@ class Map{
     void parse(const char *osmString);
 
     /*!
+     * @brief Returns summary log from parsing
+     */
+    String getParseLog();
+
+    /*!
+     * @brief Returns number of available waypoints
+     * @retval number of all known waypoints
+     */
+    int getNumberOfWaypoints();
+
+    /*!
+     * @brief Returns waypoint
+     * @param waypointIndex, Index of waypoint in list of all waypoints
+     * @retval waypoint as NavPoint
+     */
+    NavPoint getWaypoint(int waypointIndex);
+
+    /*!
+     * @brief Returns number of available ways
+     * @brief number of all known ways
+     */
+    int getNumberOfWays();
+
+    /*!
+     * @brief Returns number of waypoints in way
+     * @param index, index of way in lists
+     * @retval number of waypoints in a way
+     */
+    int getNumberOfPointsInWay(int index);
+
+    /*!
+     * @brief Returns number of available waypoints
+     * @param wayIndex, index of way in list of ways
+     * @param waypointIndex, index of waypoint in a way
+     */
+    NavPoint getWaypointFromWay(int wayIndex, int waypointIndex);
+    
+  private:
+
+    bool log;
+    int errors;
+    String parseLog;
+    
+    NavPoint waypoints[MAP_WAYPOINTS_MAX];
+    int waypointIDs[MAP_WAYPOINTS_MAX];
+    int numberOfWaypoints;
+
+    int ways[MAP_WAYS_MAX][MAP_WAYLENGTH_MAX];
+    int wayLengths[MAP_WAYS_MAX];
+    int numberOfWays;
+
+    /*!
      * @brief Adds navpoint as waypoint
      * @param id, unique point id
      * @param point, NavPoint
@@ -59,7 +111,7 @@ class Map{
     bool addWay();
 
     /*!
-     * @brief Adds waypoint do way
+     * @brief Adds waypoint to way
      * @param id, id of waypoint
      * @retval success
      */
@@ -69,19 +121,6 @@ class Map{
      * @brief Deletes all ways
      */
     void flushWays();
-    
-  private:
-
-    bool log;
-    int errors;
-    
-    NavPoint waypoints[MAP_WAYPOINTS_MAX];
-    int waypointIDs[MAP_WAYPOINTS_MAX];
-    int numberOfWaypoints;
-
-    int ways[MAP_WAYS_MAX][MAP_WAYLENGTH_MAX];
-    int wayLengths[MAP_WAYS_MAX];
-    int numberOfWays;
 };
 
 #endif

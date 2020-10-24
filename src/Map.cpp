@@ -119,8 +119,8 @@ void Map::parse(const char *osmString)
     }
     else if(fields[1].compareTo("nd") == 0)
     {
-      int found = 0;
-      int id;
+      bool found = false;
+      int id = -1;
 
       for(int i = 2; i < 10; i++)
       {
@@ -148,7 +148,8 @@ void Map::parse(const char *osmString)
           {
             id = -id;
           }
-          found ++;
+	  Serial.println(id);
+          found = true;
         }      
         if(found)
         {
@@ -158,11 +159,13 @@ void Map::parse(const char *osmString)
       }
     }
   }
+  parseLog = "Parsed osm file with " + String(errors, DEC) + " errors....\n" + 
+             String(numberOfWaypoints, DEC) + " of " + String(MAP_WAYPOINTS_MAX) + " available waypoints were used...\n" + 
+	     String(numberOfWays, DEC) + " of " + String(MAP_WAYS_MAX) + " available ways were used...\n";
   if(log)
   {
-    Serial.println("\nParsed osm file with " + String(errors, DEC) + " errors....");
-    Serial.println(String(numberOfWaypoints, DEC) + " of " + String(MAP_WAYPOINTS_MAX) + " available waypoints were used...");
-    Serial.println(String(numberOfWays, DEC) + " of " + String(MAP_WAYS_MAX) + " available ways were used...");
+    Serial.println("");
+    Serial.println(parseLog);
     Serial.println("Distribution of waypoints in ways (Maximum of " + String(MAP_WAYLENGTH_MAX, DEC) + " points per way:");
     for(int i = 0; i < numberOfWays; i++)
     {
@@ -170,6 +173,11 @@ void Map::parse(const char *osmString)
     }
     Serial.println("**********************************************************************************************************************************");
   }
+}
+
+String Map::getParseLog()
+{
+  return parseLog;
 }
 
 bool Map::addWaypoint(int id, NavPoint point)
@@ -323,4 +331,44 @@ void Map::flushWays()
     Serial.println("");
     Serial.println("Flushing ways...");
   }
+}
+
+int Map::getNumberOfWaypoints()
+{
+  return numberOfWaypoints;  
+}
+
+NavPoint Map::getWaypoint(int waypointIndex)
+{
+  NavPoint waypoint;
+  if(waypointIndex < numberOfWaypoints)
+  {
+    waypoint = waypoints[waypointIndex];
+  }
+  return waypoint;
+}
+
+int Map::getNumberOfWays()
+{
+  return numberOfWays;
+}
+
+int Map::getNumberOfPointsInWay(int index)
+{
+  int points = -1;
+  if(index < numberOfWays)
+  {
+    points = wayLengths[index];
+  }
+  return points;
+}
+
+NavPoint Map::getWaypointFromWay(int wayIndex, int waypointIndex)
+{
+  NavPoint waypoint;
+  if(wayIndex < numberOfWays && waypointIndex < wayLengths[wayIndex])
+  {
+    waypoint = waypoints[ways[wayIndex][waypointIndex]];
+  }
+  return waypoint;
 }

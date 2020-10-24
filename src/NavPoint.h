@@ -24,6 +24,13 @@ public:
     ~NavPoint();
 
     /*!
+    * @brief Setter for coordinates
+    * @param latidue, Latitude as float
+    * @param longitude, Longitude as float
+    */
+    void setCoordinates(float latitude, float longitude);
+
+    /*!
     * @brief Getter for Latitude
     * @return Latitude as float
     */
@@ -77,9 +84,16 @@ public:
     */
     float calculateDeltaAngle(float courseHeading, NavPoint destinationPoint);
 
+    /*!
+    * @brief Calculates coordinates for canvas drawing
+    * @param startPoint point on upper left canvas corner
+    * @param *x, *y, pointers to coordinates
+    * @param metersPerPixel, resolution
+    */
+    void xyPixelsFromStartPoint(NavPoint startPoint, int *x, int *y, float metersPerPixel);
+
 private:
     float latitude, longitude;
-    float earthRadius;
 };
 
 #endif
