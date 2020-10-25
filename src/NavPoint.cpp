@@ -11,6 +11,12 @@ NavPoint::NavPoint(float latitude, float longitude)
     this->longitude=longitude;
 }
 
+NavPoint::NavPoint(const NavPoint &p)
+{
+    latitude = p.latitude;
+    longitude = p.longitude;
+}
+
 NavPoint::~NavPoint(){}
 
 float NavPoint::getLatitude() const

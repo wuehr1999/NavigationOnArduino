@@ -11,6 +11,11 @@ public:
     */
     NavPoint();
 
+    /*! 
+     * @brief Copy constructor
+     */
+    NavPoint(const NavPoint &p);
+
     /*!
     * @brief Initializes navigation point with coordinates
     * @param latitude, Latitude as float

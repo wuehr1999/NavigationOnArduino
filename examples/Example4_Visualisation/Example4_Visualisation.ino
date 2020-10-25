@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
   Draws a map based on osm data to a display.
 
   Hardware: ArduHMI v1.3: https://github.com/generationmake/ArduHMIShield
@@ -59,7 +59,7 @@ void setup() {
       p1.xyPixelsFromStartPoint(startPoint, &x1, &y1, metersPerPixel);
       p2.xyPixelsFromStartPoint(startPoint, &x2, &y2, metersPerPixel);
 
-      //dog.drawLine(x1, y1, x2, y2);
+      dog.drawLine(x1, y1, x2, y2);
 
     }
   }

@@ -148,7 +148,7 @@ void Map::parse(const char *osmString)
           {
             id = -id;
           }
-	  Serial.println(id);
+	  //Serial.println(id);
           found = true;
         }      
         if(found)
@@ -159,6 +159,7 @@ void Map::parse(const char *osmString)
       }
     }
   }
+
   parseLog = "Parsed osm file with " + String(errors, DEC) + " errors....\n" + 
              String(numberOfWaypoints, DEC) + " of " + String(MAP_WAYPOINTS_MAX) + " available waypoints were used...\n" + 
 	     String(numberOfWays, DEC) + " of " + String(MAP_WAYS_MAX) + " available ways were used...\n";
@@ -297,8 +298,9 @@ bool Map::addPointToWay(int id)
         {
           if(waypointIDs[i] == id)
           {
-            ways[numberOfWays][currentPoint] = i;
+            ways[numberOfWays - 1][currentPoint - 1] = i;
             logMessage += "SUCCESS: Added waypoint with id " + String(id, DEC) + " and index " + String(i, DEC) + " to way number " + String(numberOfWays, DEC) + " at position " + String(currentPoint, DEC) + "...\n";
+            logMessage += "Coordinates: " + String(waypoints[i].getLatitude(), 7) + ", " + String(waypoints[i].getLongitude(), 7) + "...\n";
             success = true;
             break;
           }
