@@ -1,6 +1,7 @@
 #ifndef NAVPOINT_H
 #define NAVPOINT_H
 
+#include <Arduino.h>
 #include <math.h>
 
 class NavPoint
@@ -96,6 +97,8 @@ public:
     * @param metersPerPixel, resolution
     */
     void xyPixelsFromStartPoint(NavPoint startPoint, int *x, int *y, float metersPerPixel);
+
+		String toString();
 
 private:
     float latitude, longitude;

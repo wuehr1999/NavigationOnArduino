@@ -133,3 +133,8 @@ void NavPoint::xyPixelsFromStartPoint(NavPoint startPoint, int *x, int *y, float
     *x = (int)(cos(bearing * M_PI / 180.0) * distance / metersPerPixel);
     *y = (int)(sin(bearing * M_PI / 180.0) * distance / metersPerPixel);
 }
+
+String NavPoint::toString()
+{
+	return String(latitude, 7) + ", " + String(longitude, 7);
+}

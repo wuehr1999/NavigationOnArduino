@@ -27,13 +27,15 @@ void setup() {
 
   dog.begin(6,0,0, 0, 1,DOGM128); 
   dog.clear();
+  dog.createCanvas(128, 60, 0, 0);
   
   osmMap.begin(true); // set up map
   osmMap.parse(osmString); // parse
 
-  metersPerPixel = 10.0; // set resolution 
-  startPoint.setLatitude(49.001498); // set fixpoint
-  startPoint.setLongitude(12.821489);
+  metersPerPixel = 12.0; // set resolution 
+
+  startPoint.setLatitude(49.002015);
+  startPoint.setLongitude(12.819931);
 
   // draw points
   for(int i = 0; i < osmMap.getNumberOfWaypoints(); i++)
@@ -43,7 +45,7 @@ void setup() {
     int x;
     int y;   
     current.xyPixelsFromStartPoint(startPoint, &x, &y, metersPerPixel);
-    dog.drawCross(x, y, 1, 1);
+    //dog.drawCross(x, y, 1, 1);
   }
 
   // draw ways
@@ -66,5 +68,10 @@ void setup() {
 }
 
 void loop() {
+  //osmMap.parse(osmString);
+  //osmMap.planRoute(NavPoint(48.997881, 12.827460), NavPoint(48.999586, 12.821980));
+  Serial.println("***");
 
+  
+  delay(3000);
 }

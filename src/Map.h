@@ -2,6 +2,7 @@
 #define MAP_H
 #include <Arduino.h>
 #include <NavPoint.h>
+#include <ArduinoQueue.h>
 
 #define MAP_WAYPOINTS_MAX 200
 #define MAP_WAYLENGTH_MAX 50
@@ -70,6 +71,12 @@ class Map{
      * @param waypointIndex, index of waypoint in a way
      */
     NavPoint getWaypointFromWay(int wayIndex, int waypointIndex);
+
+    int getClosestWaypoint(NavPoint point);
+
+		ArduinoQueue<int> getAdjacents(int pointIndex);
+
+		void planRoute(NavPoint start, NavPoint destination);
     
   private:
 
@@ -121,6 +128,7 @@ class Map{
      * @brief Deletes all ways
      */
     void flushWays();
+
 };
 
 #endif

@@ -374,3 +374,79 @@ NavPoint Map::getWaypointFromWay(int wayIndex, int waypointIndex)
   }
   return waypoint;
 }
+
+int Map::getClosestWaypoint(NavPoint point)
+{
+	float distanceMin = -1.0;
+	int pointIndex = 0;
+  for(int p = 0; p < numberOfWaypoints; p++)
+	{
+		float distance = point.calculateDistance(waypoints[p]);
+		if(distanceMin < 0.0 || distance < distanceMin)
+		{
+			distanceMin = distance;
+			pointIndex = p;
+		}
+  }
+
+	return pointIndex;
+}
+
+ArduinoQueue<int> Map::getAdjacents(int pointIndex)
+{
+	ArduinoQueue<int> adjacents(MAP_WAYPOINTS_MAX);
+	for(int w = 0; w < numberOfWays; w++)
+  {
+		for(int p = 0; p < wayLengths[w]; p++)
+		{
+			if(pointIndex == ways[w][p] && !adjacents.isFull())
+			{
+				if(p > 0)
+				{
+					adjacents.enqueue(ways[w][p - 1]);
+				}
+				else if(p < wayLengths[w])
+				{
+					adjacents.enqueue(ways[w][p + 1]);
+				}
+			}
+		}
+	}
+
+	return adjacents;
+}
+
+void Map::planRoute(NavPoint start, NavPoint destination)
+{
+  int startIndex = getClosestWaypoint(start);
+  int destIndex = getClosestWaypoint(destination);
+	
+	float heuristicCosts[MAP_WAYPOINTS_MAX];
+	float costs[MAP_WAYPOINTS_MAX];
+	int goOverList[MAP_WAYPOINTS_MAX];
+
+	bool openList[MAP_WAYPOINTS_MAX];
+	bool closedList[MAP_WAYPOINTS_MAX];
+	
+	for(int i = 0; i < numberOfWaypoints; i++)
+ 	{
+		heuristicCosts[i] = waypoints[i].calculateDistance(waypoints[destIndex]);
+		//Serial.println(String(heuristicCosts[i], 7));
+		openList[i] = false;
+		closedList[i] = false; 
+		goOverList[i] = -1;
+	}
+	closedList[startIndex] = true;
+	goOverList[startIndex] = startIndex;
+
+	ArduinoQueue<int> nextPoints(MAP_WAYPOINTS_MAX);
+	ArduinoQueue<int> adjacents = getAdjacents(startIndex);
+	while(!adjacents.isEmpty())
+	{
+		nextPoints.enqueue(adjacents.dequeue());
+	}
+	while(!nextPoints.isEmpty())
+	{
+
+	}
+}
