@@ -4,7 +4,7 @@
 
 **Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap data on an Arduino.**
 
-**See the ![wiki](https://github.com/wuehr1999/NavigationOnArduino/wiki) for complete documentation**
+**See the ![wiki](https://github.com/wuehr1999/NavigationOnArduino/wiki) for complete documentation.**
 
 ## Features
 
