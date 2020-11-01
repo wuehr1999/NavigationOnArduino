@@ -3,8 +3,9 @@
 
   Hardware: ArduHMI v1.3: https://github.com/generationmake/ArduHMIShield
   Libraries: NavigationOnArduino,
-			       ArduinoQueue: https://github.com/EinarArnason/ArduinoQueue,
-             Display: https://github.com/generationmake/DogGraphicDisplay
+                               ArduinoQueue:
+https://github.com/EinarArnason/ArduinoQueue, Display:
+https://github.com/generationmake/DogGraphicDisplay
 
   Original Creation Date: 24.10.2020
 ******************************************************************************/

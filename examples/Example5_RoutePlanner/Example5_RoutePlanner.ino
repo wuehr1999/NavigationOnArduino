@@ -3,7 +3,8 @@
 
   Hardware: ArduHMI v1.3: https://github.com/generationmake/ArduHMIShield
   Libraries: NavigationOnArduino,
-			       ArduinoQueue: https://github.com/EinarArnason/ArduinoQueue
+                               ArduinoQueue:
+https://github.com/EinarArnason/ArduinoQueue
 
   Original Creation Date: 24.10.2020
 ******************************************************************************/
