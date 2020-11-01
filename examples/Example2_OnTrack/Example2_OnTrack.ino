@@ -1,4 +1,3 @@
-
 /******************************************************************************
   Calculates distance of point to a track defined by two waypoints to check
   if the vehicle is still on track.

@@ -1,4 +1,3 @@
-
 /******************************************************************************
   Calculates distance and bearing between two cartesian points
   
