@@ -4,13 +4,15 @@ on:
   pull_request:
     paths:
       - ".github/workflows/compile-examples.yml"
-      - "examples/**"
-      - "src/**"
+      - '**.ino'
+      - '**.cpp'
+      - '**.h'
   push:
     paths:
       - ".github/workflows/compile-examples.yml"
-      - "examples/**"
-      - "src/**"
+      - '**.ino'
+      - '**.cpp'
+      - '**.h'
 
 jobs:
   build:
