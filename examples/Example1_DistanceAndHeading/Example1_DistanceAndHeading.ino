@@ -1,6 +1,6 @@
 /******************************************************************************
   Calculates distance and bearing between two cartesian points
-  
+
   Original Creation Date: 13.10.2020
 ******************************************************************************/
 
@@ -12,8 +12,8 @@ NavPoint p2(48.997873, 12.837614);
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial);
-
+  while (!Serial)
+    ;
 }
 
 void loop() {

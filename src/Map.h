@@ -1,156 +1,156 @@
 #ifndef MAP_H
 #define MAP_H
 #include <Arduino.h>
-#include <NavPoint.h>
 #include <ArduinoQueue.h>
+#include <NavPoint.h>
 
 #define MAP_WAYPOINTS_MAX 200
 #define MAP_WAYLENGTH_MAX 50
 #define MAP_WAYS_MAX 30
 
-class Map{
+class Map {
 
-  public:
+public:
+  /*!
+   * @brief Initializes object for storing data from osm file format
+   */
+  Map();
 
-    /*!
-     * @brief Initializes object for storing data from osm file format
-     */
-    Map();
+  /*!
+   * @brief Sets up map
+   * @param log, enables log via serial console
+   */
+  void begin(bool log);
 
-    /*!
-     * @brief Sets up map
-     * @param log, enables log via serial console
-     */
-    void begin(bool log);
+  /*!
+   * @brief Sets up map with log enabled by default
+   */
+  void begin();
 
-    /*!
-     * @brief Sets up map with log enabled by default
-     */
-    void begin();
+  /*!
+   * @brief Method for parsing osm data from file
+   * A osm string to be included in the code can be generated with the
+   * osmfileToString tool
+   */
+  void parse(const char *osmString);
 
-    /*!
-     * @brief Method for parsing osm data from file
-     * A osm string to be included in the code can be generated with the osmfileToString tool
-     */
-    void parse(const char *osmString);
+  /*!
+   * @brief Returns summary log from parsing
+   */
+  String getParseLog();
 
-    /*!
-     * @brief Returns summary log from parsing
-     */
-    String getParseLog();
+  /*!
+   * @brief Returns number of available waypoints
+   * @retval number of all known waypoints
+   */
+  int getNumberOfWaypoints();
 
-    /*!
-     * @brief Returns number of available waypoints
-     * @retval number of all known waypoints
-     */
-    int getNumberOfWaypoints();
+  /*!
+   * @brief Returns waypoint
+   * @param waypointIndex, Index of waypoint in list of all waypoints
+   * @retval waypoint as NavPoint
+   */
+  NavPoint getWaypoint(int waypointIndex);
 
-    /*!
-     * @brief Returns waypoint
-     * @param waypointIndex, Index of waypoint in list of all waypoints
-     * @retval waypoint as NavPoint
-     */
-    NavPoint getWaypoint(int waypointIndex);
+  /*!
+   * @brief Returns number of available ways
+   * @brief number of all known ways
+   */
+  int getNumberOfWays();
 
-    /*!
-     * @brief Returns number of available ways
-     * @brief number of all known ways
-     */
-    int getNumberOfWays();
+  /*!
+   * @brief Returns number of waypoints in way
+   * @param index, index of way in lists
+   * @retval number of waypoints in a way
+   */
+  int getNumberOfPointsInWay(int index);
 
-    /*!
-     * @brief Returns number of waypoints in way
-     * @param index, index of way in lists
-     * @retval number of waypoints in a way
-     */
-    int getNumberOfPointsInWay(int index);
+  /*!
+   * @brief Returns number of available waypoints
+   * @param wayIndex, index of way in list of ways
+   * @param waypointIndex, index of waypoint in a way
+   */
+  NavPoint getWaypointFromWay(int wayIndex, int waypointIndex);
 
-    /*!
-     * @brief Returns number of available waypoints
-     * @param wayIndex, index of way in list of ways
-     * @param waypointIndex, index of waypoint in a way
-     */
-    NavPoint getWaypointFromWay(int wayIndex, int waypointIndex);
+  /*!
+   * @brief Snaps point on road (finds closest known waypoint)
+   * @param point, point to be snapped
+   * @retval index of waypoint
+   */
+  int getClosestWaypoint(NavPoint point);
 
-		/*!
-		 * @brief Snaps point on road (finds closest known waypoint)
-		 * @param point, point to be snapped
-     * @retval index of waypoint
-     */
-    int getClosestWaypoint(NavPoint point);
+  /*!
+   * @brief Returns points adjacent to specific waypoint
+   * @param pointIndex, index of waypoint
+   * @retval queue with indexes of adjacent points
+   */
+  ArduinoQueue<int> getAdjacents(int pointIndex);
 
-		/*!
-		 * @brief Returns points adjacent to specific waypoint
-     * @param pointIndex, index of waypoint
-     * @retval queue with indexes of adjacent points
-     */
-		ArduinoQueue<int> getAdjacents(int pointIndex);
+  /*!
+   * @brief Plans shortest route between two points based on Dijkstra's
+   * algorithm
+   * @param start, start position (doesn't need to be in waypoints list)
+   * @param destination, destination position (doesn't need to be in waypoints
+   * list)
+   * @retval queue of waypoint indexes in correct order
+   */
+  ArduinoQueue<int> planRoute(NavPoint start, NavPoint destination);
 
-		/*!
-		 * @brief Plans shortest route between two points based on Dijkstra's algorithm
-     * @param start, start position (doesn't need to be in waypoints list)
-     * @param destination, destination position (doesn't need to be in waypoints list)
-     * @retval queue of waypoint indexes in correct order
-     */
-		ArduinoQueue<int> planRoute(NavPoint start, NavPoint destination);
+  /*!
+   * @brief Returns summary log from route planning
+   */
+  String getRouteLog();
 
-    /*!
-     * @brief Returns summary log from route planning
-     */
-    String getRouteLog();
-    
-  private:
+private:
+  bool log;
+  int errors;
+  String parseLog;
+  String routeLog;
 
-    bool log;
-    int errors;
-    String parseLog;
-		String routeLog;
-    
-    NavPoint waypoints[MAP_WAYPOINTS_MAX];
-    int waypointIDs[MAP_WAYPOINTS_MAX];
-    int numberOfWaypoints;
+  NavPoint waypoints[MAP_WAYPOINTS_MAX];
+  int waypointIDs[MAP_WAYPOINTS_MAX];
+  int numberOfWaypoints;
 
-    int ways[MAP_WAYS_MAX][MAP_WAYLENGTH_MAX];
-    int wayLengths[MAP_WAYS_MAX];
-    int numberOfWays;
+  int ways[MAP_WAYS_MAX][MAP_WAYLENGTH_MAX];
+  int wayLengths[MAP_WAYS_MAX];
+  int numberOfWays;
 
-    /*!
-     * @brief Adds navpoint as waypoint
-     * @param id, unique point id
-     * @param point, NavPoint
-     * @retval success
-     */
-    bool addWaypoint(int id, NavPoint point);
+  /*!
+   * @brief Adds navpoint as waypoint
+   * @param id, unique point id
+   * @param point, NavPoint
+   * @retval success
+   */
+  bool addWaypoint(int id, NavPoint point);
 
-    /*!
-     * @brief Adds navpoint as waypoint, the id is autogenerated
-     * @retval success
-     */
-    bool addWaypoint(NavPoint point);
+  /*!
+   * @brief Adds navpoint as waypoint, the id is autogenerated
+   * @retval success
+   */
+  bool addWaypoint(NavPoint point);
 
-    /*!
-     * @brief Deletes all waypoints from map
-     */
-    void flushWaypoints();
+  /*!
+   * @brief Deletes all waypoints from map
+   */
+  void flushWaypoints();
 
-    /*!
-     * @brief Sets up new way
-     * @retval success
-     */
-    bool addWay();
+  /*!
+   * @brief Sets up new way
+   * @retval success
+   */
+  bool addWay();
 
-    /*!
-     * @brief Adds waypoint to way
-     * @param id, id of waypoint
-     * @retval success
-     */
-    bool addPointToWay(int id);
+  /*!
+   * @brief Adds waypoint to way
+   * @param id, id of waypoint
+   * @retval success
+   */
+  bool addPointToWay(int id);
 
-    /*!
-     * @brief Deletes all ways
-     */
-    void flushWays();
-
+  /*!
+   * @brief Deletes all ways
+   */
+  void flushWays();
 };
 
 #endif
