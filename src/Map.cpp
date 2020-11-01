@@ -7,7 +7,7 @@ void Map::begin(bool log)
   this->log = log;
   flushWaypoints();
   flushWays();
-  String logMessage = "Setting up *.osm based map with up to " + String(MAP_WAYPOINTS_MAX, DEC) + " points and up to " + String(MAP_WAYS_MAX, DEC) + " ways containg a maximum of " + String(MAP_WAYLENGTH_MAX, DEC) + "waypoints...";
+  String logMessage = "Setting up *.osm based map with up to " + String(MAP_WAYPOINTS_MAX, DEC) + " points and up to " + String(MAP_WAYS_MAX, DEC) + " ways containing a maximum of " + String(MAP_WAYLENGTH_MAX, DEC) + "waypoints...";
   if(log)
   {
     Serial.println("**********************************************************************************************************************************");
