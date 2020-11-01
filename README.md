@@ -4,8 +4,6 @@
 
 Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap on an Arduino.
 
-![Map on DOGM display](extras/images/display.png)
-
 ## Features
 
 * distance and bearing calculation between waypoints
@@ -14,3 +12,8 @@ Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap
 * simple and lightweight openstreetmap file parser (.osm)
 * management of waypoints in map
 * route planning with Dijkstra's algorithm
+* helpers for visualisation on graphic displays
+
+![Map on DOGM display](extras/images/display.png)
+
+
