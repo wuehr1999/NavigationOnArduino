@@ -28,6 +28,7 @@ jobs:
           enable-size-deltas-report: true
           libraries: |
             - name: ArduinoQueue
+            - name: NavPoint
 
       - name: Save memory usage change report as artifact
         if: github.event_name == 'pull_request'
