@@ -3,7 +3,7 @@ OBJS = osmToString.o
 LIBS = 
 TARGET = osmToString
 $(TARGET):$(OBJS)
-		$(CXX) -o $(TARGET) $(OBJS) $(LIBS)
+$(CXX) -o $(TARGET) $(OBJS) $(LIBS)
 all:$(TARGET)
 clean:
-	rm -f $(OBJS) $(TARGET)
+rm -f $(OBJS) $(TARGET)
