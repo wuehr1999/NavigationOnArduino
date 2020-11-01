@@ -72,17 +72,39 @@ class Map{
      */
     NavPoint getWaypointFromWay(int wayIndex, int waypointIndex);
 
+		/*!
+		 * @brief Snaps point on road (finds closest known waypoint)
+		 * @param point, point to be snapped
+     * @retval index of waypoint
+     */
     int getClosestWaypoint(NavPoint point);
 
+		/*!
+		 * @brief Returns points adjacent to specific waypoint
+     * @param pointIndex, index of waypoint
+     * @retval queue with indexes of adjacent points
+     */
 		ArduinoQueue<int> getAdjacents(int pointIndex);
 
-		void planRoute(NavPoint start, NavPoint destination);
+		/*!
+		 * @brief Plans shortest route between two points based on Dijkstra's algorithm
+     * @param start, start position (doesn't need to be in waypoints list)
+     * @param destination, destination position (doesn't need to be in waypoints list)
+     * @retval queue of waypoint indexes in correct order
+     */
+		ArduinoQueue<int> planRoute(NavPoint start, NavPoint destination);
+
+    /*!
+     * @brief Returns summary log from route planning
+     */
+    String getRouteLog();
     
   private:
 
     bool log;
     int errors;
     String parseLog;
+		String routeLog;
     
     NavPoint waypoints[MAP_WAYPOINTS_MAX];
     int waypointIDs[MAP_WAYPOINTS_MAX];

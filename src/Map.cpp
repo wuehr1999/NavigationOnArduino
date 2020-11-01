@@ -13,6 +13,8 @@ void Map::begin(bool log)
     Serial.println("**********************************************************************************************************************************");
     Serial.println(logMessage);
   }
+	parseLog = "";
+	routeLog = "";
 }
 
 void Map::begin()
@@ -379,13 +381,15 @@ int Map::getClosestWaypoint(NavPoint point)
 {
 	float distanceMin = -1.0;
 	int pointIndex = 0;
+
   for(int p = 0; p < numberOfWaypoints; p++)
 	{
 		float distance = point.calculateDistance(waypoints[p]);
+
 		if(distanceMin < 0.0 || distance < distanceMin)
 		{
 			distanceMin = distance;
-			pointIndex = p;
+			pointIndex = p;			
 		}
   }
 
@@ -394,59 +398,147 @@ int Map::getClosestWaypoint(NavPoint point)
 
 ArduinoQueue<int> Map::getAdjacents(int pointIndex)
 {
-	ArduinoQueue<int> adjacents(MAP_WAYPOINTS_MAX);
+	ArduinoQueue<int> adjacents(numberOfWaypoints);
 	for(int w = 0; w < numberOfWays; w++)
   {
 		for(int p = 0; p < wayLengths[w]; p++)
 		{
-			if(pointIndex == ways[w][p] && !adjacents.isFull())
+			if(pointIndex == ways[w][p])
 			{
 				if(p > 0)
 				{
 					adjacents.enqueue(ways[w][p - 1]);
 				}
-				else if(p < wayLengths[w])
+				if(p < wayLengths[w])
 				{
 					adjacents.enqueue(ways[w][p + 1]);
 				}
 			}
 		}
 	}
-
+	
 	return adjacents;
 }
 
-void Map::planRoute(NavPoint start, NavPoint destination)
+ArduinoQueue<int> Map::planRoute(NavPoint start, NavPoint destination)
 {
-  int startIndex = getClosestWaypoint(start);
-  int destIndex = getClosestWaypoint(destination);
+  int startIndex = getClosestWaypoint(destination);
+  int destIndex = getClosestWaypoint(start);
 	
-	float heuristicCosts[MAP_WAYPOINTS_MAX];
-	float costs[MAP_WAYPOINTS_MAX];
-	int goOverList[MAP_WAYPOINTS_MAX];
+	float distances[numberOfWaypoints];
+	int previousVertexes[numberOfWaypoints];
+	bool visitedVertexes[numberOfWaypoints];
 
-	bool openList[MAP_WAYPOINTS_MAX];
-	bool closedList[MAP_WAYPOINTS_MAX];
-	
+	float endless = -1.0;
+	int unknown = -1;
+	routeLog = "Routeplanner...\n";
+	routeLog += "Start: " + start.toString() + ", Destination: " + destination.toString() + "\n";
+	routeLog += "Snapping to: (" + waypoints[startIndex].toString() + "), (" + waypoints[destIndex].toString() + ")\n";
+	routeLog += "startIndex: " + String(startIndex, DEC) + ", destIndex: " + String(destIndex, DEC) + "\n";
+	if(log)
+	{
+		Serial.println("**********************************************************************************************************************************");
+		Serial.println("Initializing routeplanner...");
+		Serial.print(routeLog);
+	}
 	for(int i = 0; i < numberOfWaypoints; i++)
- 	{
-		heuristicCosts[i] = waypoints[i].calculateDistance(waypoints[destIndex]);
-		//Serial.println(String(heuristicCosts[i], 7));
-		openList[i] = false;
-		closedList[i] = false; 
-		goOverList[i] = -1;
-	}
-	closedList[startIndex] = true;
-	goOverList[startIndex] = startIndex;
-
-	ArduinoQueue<int> nextPoints(MAP_WAYPOINTS_MAX);
-	ArduinoQueue<int> adjacents = getAdjacents(startIndex);
-	while(!adjacents.isEmpty())
 	{
-		nextPoints.enqueue(adjacents.dequeue());
+		distances[i] = endless;
+		previousVertexes[i] = unknown;
+		visitedVertexes[i] = false;
 	}
-	while(!nextPoints.isEmpty())
-	{
 
+	distances[startIndex] = 0.0;
+	previousVertexes[startIndex] = destIndex;
+
+	int nextIndex = unknown;
+	bool allVisited = false;
+	
+	while(!allVisited)
+	{
+		float minDist = endless;
+
+		for(int i = 0; i < numberOfWaypoints; i++)
+		{
+			if((minDist == endless || (distances[i] < minDist && distances[i] != endless)) && !visitedVertexes[i])
+			{
+				minDist = distances[i];
+				nextIndex = i;
+			}
+		}
+		visitedVertexes[nextIndex] = true;
+		
+		ArduinoQueue<int> adjacents = getAdjacents(nextIndex);
+		while(!adjacents.isEmpty())
+		{
+			int adj = adjacents.dequeue();
+			float distance = distances[nextIndex] + waypoints[nextIndex].calculateDistance(waypoints[adj]);
+			if(distance < distances[adj] || distances[adj] == endless)
+			{
+				distances[adj] = distance;
+				previousVertexes[adj] = nextIndex;
+			}
+		}
+
+		allVisited = true;
+		for(int i = 0; i < numberOfWaypoints; i++)
+		{
+			if(!visitedVertexes[i])			
+			{
+				allVisited = false;
+				break;
+			}
+		}
 	}
+
+	int point = destIndex;
+
+	ArduinoQueue<int> route(numberOfWaypoints);
+	int iteration = 0;
+	String wayLog = "";
+	while(1)
+	{
+		iteration ++;
+		wayLog = "index: " + String(point, DEC) + ", (" + String(waypoints[point].getLatitude(), 7) + "," + String(waypoints[point].getLongitude(), 7) + ")\n";
+		routeLog += wayLog;
+		if(log)
+		{
+			Serial.print(wayLog);
+		}
+		if(previousVertexes[point] == unknown || iteration > MAP_WAYPOINTS_MAX)
+		{
+			wayLog = "ERROR: faulty way...\n";
+  		routeLog += wayLog;
+			if(log)
+			{
+				Serial.print(wayLog);
+			}
+			break;
+		}
+	  else if(previousVertexes[point] == startIndex)
+		{
+			wayLog = "SUCCESS: way complete...\n";
+			routeLog += wayLog;
+			if(log)
+			{
+				Serial.print(wayLog);
+			}
+			route.enqueue(startIndex);
+			break;
+		}
+		else
+		{		
+			point = previousVertexes[point];
+			route.enqueue(point);
+		}
+	}
+
+ 	Serial.println("**********************************************************************************************************************************");
+
+	return route;
+}
+
+String Map::getRouteLog()
+{
+	return routeLog;
 }
