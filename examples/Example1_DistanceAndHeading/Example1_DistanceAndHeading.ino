@@ -1,5 +1,7 @@
 /******************************************************************************
   Calculates distance and bearing between two cartesian points
+  Libraries: NavigationOnArduino,
+			       ArduinoQueue: https://github.com/EinarArnason/ArduinoQueue
 
   Original Creation Date: 13.10.2020
 ******************************************************************************/

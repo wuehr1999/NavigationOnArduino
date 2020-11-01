@@ -2,6 +2,8 @@
   Parses osm file content (as String) to osm map object.
   The string was generated from a simplified *.osm ( done with JOSM ) and
   the osmfileToStringTool in the library repository.
+  Libraries: NavigationOnArduino,
+			       ArduinoQueue: https://github.com/EinarArnason/ArduinoQueue
 
   Original Creation Date: 18.10.2020
 ******************************************************************************/
