@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// tool for creating string from .osm, that can be copied in arduino sketch
 void printHelp();
 
 int main(int argc, char *argv[])
 {
-
-
-
     if(argc == 2)
     {
     FILE * fp;
