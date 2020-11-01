@@ -2,7 +2,9 @@
 [![General Formatting Checks](https://github.com/wuehr1999/NavigationOnArduino/workflows/General%20Formatting%20Checks/badge.svg)](https://github.com/wuehr1999/NavigationOnArduino/actions?workflow=General+Formatting+Checks)
 [![Spell Check](https://github.com/wuehr1999/NavigationOnArduino/workflows/Spell%20Check/badge.svg)](https://github.com/wuehr1999/NavigationOnArduino/actions?workflow=Spell+Check)
 
-Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap on an Arduino.
+**Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap data on an Arduino.
+
+See the ![wiki](https://mygit.th-deg.de/highdriveunit/highdriveunit/-/wikis/home) for complete documentation**
 
 ## Features
 
