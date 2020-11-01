@@ -16,4 +16,7 @@ Manage navigaiton tasks with geodata (latitude and  longitude) and openstreetmap
 
 ![Map on DOGM display](extras/images/display.png)
 
+## Used Libraries
 
+* ArduinoQueue: https://github.com/EinarArnason/ArduinoQueue
+* DogGraphicDisplay (only in visualisation examples): https://github.com/generationmake/DogGraphicDisplay
