@@ -4,7 +4,7 @@
   Original Creation Date: 13.10.2020
 ******************************************************************************/
 
-#include <NavPoint.h>
+#include "NavPoint.h"
 
 // Set up points
 NavPoint p1(48.995796, 12.837936);

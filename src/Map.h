@@ -2,7 +2,7 @@
 #define MAP_H
 #include <Arduino.h>
 #include <ArduinoQueue.h>
-#include <NavPoint.h>
+#include "NavPoint.h"
 
 #define MAP_WAYPOINTS_MAX 200
 #define MAP_WAYLENGTH_MAX 50
