@@ -82,11 +82,6 @@ float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1,
 
 float NavPoint::calculateDeltaAngle(float courseHeading,
                                     NavPoint destinationPoint) {
-  if (courseHeading > 180) {
-    courseHeading = 180;
-  } else if (courseHeading < -180) {
-    courseHeading = -180;
-  }
 
   float destinationBearing = calculateBearing(destinationPoint);
 
