@@ -415,7 +415,7 @@ void loop() {
   NavPoint start(49.001342, 12.822391);
   NavPoint destination(48.999811, 12.824013);
 
-  ArduinoQueue<int> way = osmMap.planRoute(
+  ArduinoQueue<uint16_t> way = osmMap.planRoute(
       start, destination); // plan and get queue with ordered waypoints
 
   Serial.println("**********************");

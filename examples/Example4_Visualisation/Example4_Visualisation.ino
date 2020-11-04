@@ -431,7 +431,7 @@ void setup() {
     int x;
     int y;
     current.xyPixelsFromStartPoint(startPoint, &x, &y, metersPerPixel);
-    ArduinoQueue<int> adj = osmMap.getAdjacents(i);
+    ArduinoQueue<uint16_t> adj = osmMap.getAdjacents(i);
     if (adj.itemCount() > 2) {
       dog.drawCross(x, y, 1, 1);
     }
@@ -459,8 +459,7 @@ void loop() {
   NavPoint start(49.001342, 12.822391);
   NavPoint destination(48.999811, 12.824013);
 
-  ArduinoQueue<int> way = osmMap.planRoute(
-      start, destination); // plan and get queue with ordered waypoints
+  ArduinoQueue<uint16_t> way = osmMap.planRoute(start, destination); // plan and get queue with ordered waypoints
 
   while (!way.isEmpty()) {
     int pointIndex = way.dequeue();

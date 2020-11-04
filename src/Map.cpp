@@ -92,7 +92,7 @@ void Map::parse(const char *osmString) {
         }
         if (found == 3) {
           // Serial.println("found node");
-          addWaypoint(id, NavPoint(latitude, longitude));
+          addWaypoint((uint16_t)id, NavPoint(latitude, longitude));
           break;
         }
       }
@@ -129,7 +129,7 @@ void Map::parse(const char *osmString) {
           found = true;
         }
         if (found) {
-          addPointToWay(id);
+          addPointToWay((uint16_t)id);
           break;
         }
       }
@@ -158,7 +158,7 @@ void Map::parse(const char *osmString) {
 
 String Map::getParseLog() { return parseLog; }
 
-bool Map::addWaypoint(int id, NavPoint point) {
+bool Map::addWaypoint(uint16_t id, NavPoint point) {
   bool idExists = false;
   bool success = false;
   String logMessage =
@@ -200,7 +200,7 @@ bool Map::addWaypoint(NavPoint point) {
       id = waypointIDs[i] + 1;
     }
   }
-  return addWaypoint(id, point);
+  return addWaypoint((uint16_t)id, point);
 }
 
 void Map::flushWaypoints() {
@@ -233,7 +233,7 @@ bool Map::addWay() {
   return success;
 }
 
-bool Map::addPointToWay(int id) {
+bool Map::addPointToWay(uint16_t id) {
   bool success = false;
   String logMessage = "Trying to add waypoint with id " + String(id, DEC) +
                       " to way number " + String(numberOfWays, DEC) + "...\n";
@@ -287,9 +287,9 @@ void Map::flushWays() {
   }
 }
 
-int Map::getNumberOfWaypoints() { return numberOfWaypoints; }
+uint16_t Map::getNumberOfWaypoints() { return numberOfWaypoints; }
 
-NavPoint Map::getWaypoint(int waypointIndex) {
+NavPoint Map::getWaypoint(uint16_t waypointIndex) {
   NavPoint waypoint;
   if (waypointIndex < numberOfWaypoints) {
     waypoint = waypoints[waypointIndex];
@@ -297,17 +297,17 @@ NavPoint Map::getWaypoint(int waypointIndex) {
   return waypoint;
 }
 
-int Map::getNumberOfWays() { return numberOfWays; }
+uint16_t Map::getNumberOfWays() { return numberOfWays; }
 
-int Map::getNumberOfPointsInWay(int index) {
-  int points = -1;
+uint16_t Map::getNumberOfPointsInWay(uint16_t index) {
+  int points = 0;
   if (index < numberOfWays) {
     points = wayLengths[index];
   }
   return points;
 }
 
-NavPoint Map::getWaypointFromWay(int wayIndex, int waypointIndex) {
+NavPoint Map::getWaypointFromWay(uint16_t wayIndex, uint16_t waypointIndex) {
   NavPoint waypoint;
   if (wayIndex < numberOfWays && waypointIndex < wayLengths[wayIndex]) {
     waypoint = waypoints[ways[wayIndex][waypointIndex]];
@@ -315,9 +315,9 @@ NavPoint Map::getWaypointFromWay(int wayIndex, int waypointIndex) {
   return waypoint;
 }
 
-int Map::getClosestWaypoint(NavPoint point) {
+uint16_t Map::getClosestWaypoint(NavPoint point) {
   float distanceMin = -1.0;
-  int pointIndex = 0;
+  uint16_t pointIndex = 0;
 
   for (int p = 0; p < numberOfWaypoints; p++) {
     float distance = point.calculateDistance(waypoints[p]);
@@ -331,8 +331,8 @@ int Map::getClosestWaypoint(NavPoint point) {
   return pointIndex;
 }
 
-ArduinoQueue<int> Map::getAdjacents(int pointIndex) {
-  ArduinoQueue<int> adjacents(numberOfWaypoints);
+ArduinoQueue<uint16_t> Map::getAdjacents(uint16_t pointIndex) {
+  ArduinoQueue<uint16_t> adjacents(numberOfWaypoints);
   for (int w = 0; w < numberOfWays; w++) {
     for (int p = 0; p < wayLengths[w]; p++) {
       if (pointIndex == ways[w][p]) {
@@ -349,7 +349,7 @@ ArduinoQueue<int> Map::getAdjacents(int pointIndex) {
   return adjacents;
 }
 
-ArduinoQueue<int> Map::planRoute(NavPoint start, NavPoint destination) {
+ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int startIndex = getClosestWaypoint(destination);
   int destIndex = getClosestWaypoint(start);
 
@@ -398,7 +398,7 @@ ArduinoQueue<int> Map::planRoute(NavPoint start, NavPoint destination) {
     }
     visitedVertexes[nextIndex] = true;
 
-    ArduinoQueue<int> adjacents = getAdjacents(nextIndex);
+    ArduinoQueue<uint16_t> adjacents = getAdjacents(nextIndex);
     while (!adjacents.isEmpty()) {
       int adj = adjacents.dequeue();
       float distance = distances[nextIndex] +
@@ -420,7 +420,7 @@ ArduinoQueue<int> Map::planRoute(NavPoint start, NavPoint destination) {
 
   int point = destIndex;
 
-  ArduinoQueue<int> route(numberOfWaypoints);
+  ArduinoQueue<uint16_t> route(numberOfWaypoints);
   int iteration = 0;
   String wayLog = "";
   while (1) {
