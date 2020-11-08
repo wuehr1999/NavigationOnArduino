@@ -4,9 +4,8 @@
 #include <ArduinoQueue.h>
 #include <NavPoint.h>
 
-#define MAP_WAYPOINTS_MAX 300
-#define MAP_WAYLENGTH_MAX 100
-#define MAP_WAYS_MAX 75
+#define MAP_WAYPOINTS_MAX 400
+#define MAP_POINTSINWAY_MAX 400
 
 class Map {
 
@@ -140,17 +139,21 @@ public:
 
 private:
   bool log;
-  int errors;
+  int errors, warnings;
   String parseLog;
   String routeLog;
 
-  NavPoint waypoints[MAP_WAYPOINTS_MAX];
-  uint16_t waypointIDs[MAP_WAYPOINTS_MAX];
+  NavPoint *waypoints;
+  uint16_t *waypointIDs;
   uint16_t numberOfWaypoints;
 
-  uint16_t ways[MAP_WAYS_MAX][MAP_WAYLENGTH_MAX];
-  uint16_t wayLengths[MAP_WAYS_MAX];
   uint16_t numberOfWays;
+  uint16_t *wayLengths;
+  uint16_t *wayArray;
+  uint16_t pointsInWay;
+
+  bool setWayArray(uint16_t wayNr, uint16_t index, uint16_t pointId);
+  uint16_t getWayArray(uint16_t wayNr, uint16_t index);
 };
 
 #endif

@@ -4,13 +4,11 @@ Map::Map() {}
 
 void Map::begin(bool log) {
   this->log = log;
-  flushWaypoints();
-  flushWays();
+
   String logMessage = "Setting up *.osm based map with up to " +
                       String(MAP_WAYPOINTS_MAX, DEC) + " points and up to " +
-                      String(MAP_WAYS_MAX, DEC) +
-                      " ways containing a maximum of " +
-                      String(MAP_WAYLENGTH_MAX, DEC) + "waypoints...";
+                      String(MAP_POINTSINWAY_MAX, DEC) +
+                      " references in ways...";
   if (log) {
     Serial.println(
         "**********************************************************************"
@@ -24,128 +22,170 @@ void Map::begin(bool log) {
 void Map::begin() { begin(true); }
 
 void Map::parse(const char *osmString) {
-  errors = 0;
-  String entry = "";
-  int index = 0;
+
   int len = strlen(osmString);
 
-  flushWaypoints();
-  flushWays();
+  int currentWayLength = 0;
 
-  while (index < len) {
-    while (osmString[index] != '<' && index < len) {
-      index++;
-    }
-    while (osmString[index] != '>' && index < len) {
-      entry += osmString[index];
-      index++;
-    }
-    entry += ">";
-    // Serial.println(entry);
-    int fieldNo = 0;
-    String fields[10];
+  errors = 0;
+  warnings = 0;
 
-    for (int i = 0; i < entry.length(); i++) {
-      if (entry[i] == ' ' || entry[i] == '<' || entry[i] == '>') {
-        // Serial.println(fields[fieldNo]);
-        fieldNo++;
-        fields[fieldNo] = "";
-      } else {
-        fields[fieldNo] += entry[i];
+  for (int iter = 0; iter < 2; iter++) {
+
+    if (iter == 1) {
+      free(waypointIDs);
+      free(waypoints);
+      free(wayLengths);
+      waypointIDs = (uint16_t *)malloc(numberOfWaypoints * sizeof(uint16_t));
+      waypoints = (NavPoint *)malloc(numberOfWaypoints * sizeof(NavPoint));
+      wayLengths = (uint16_t *)malloc(numberOfWays * sizeof(uint16_t));
+      pointsInWay = currentWayLength;
+      if (pointsInWay > MAP_POINTSINWAY_MAX) {
+        pointsInWay = MAP_POINTSINWAY_MAX;
       }
+      wayArray = (uint16_t *)malloc(pointsInWay * sizeof(uint16_t));
+      flushWaypoints();
+      flushWays();
     }
-    entry = "";
 
-    if (fields[1].compareTo("node") == 0) {
-      int found = 0;
-      int id;
-      float latitude, longitude;
-      for (int i = 2; i < 10; i++) {
-        String currentField = fields[i];
-        int fieldIndex = 0;
-        String key = "";
-        String value = "";
-        while (currentField[fieldIndex] != '=' &&
-               fieldIndex < currentField.length()) {
-          key += currentField[fieldIndex];
-          fieldIndex++;
-        }
-        fieldIndex++;
-        while (fieldIndex < currentField.length()) {
-          value += currentField[fieldIndex];
-          fieldIndex++;
-        }
-        value = value.substring(1, value.length() - 1);
+    errors = 0;
+    String entry = "";
+    int index = 0;
 
-        if (key.compareTo("id") == 0) {
-          id = value.toInt();
-          if (id < 0) {
-            id = -id;
-          }
-          found++;
-        } else if (key.compareTo("lat") == 0) {
-          latitude = value.toFloat();
-          found++;
-        } else if (key.compareTo("lon") == 0) {
-          longitude = value.toFloat();
-          found++;
-        }
-        if (found == 3) {
-          // Serial.println("found node");
-          addWaypoint((uint16_t)id, NavPoint(latitude, longitude));
-          break;
+    numberOfWaypoints = 0;
+    numberOfWays = 0;
+    currentWayLength = 0;
+
+    while (index < len) {
+      while (osmString[index] != '<' && index < len) {
+        index++;
+      }
+      while (osmString[index] != '>' && index < len) {
+        entry += osmString[index];
+        index++;
+      }
+      entry += ">";
+      // Serial.println(entry);
+      int fieldNo = 0;
+      String fields[10];
+
+      for (int i = 0; i < entry.length(); i++) {
+        if (entry[i] == ' ' || entry[i] == '<' || entry[i] == '>') {
+          // Serial.println(fields[fieldNo]);
+          fieldNo++;
+          fields[fieldNo] = "";
+        } else {
+          fields[fieldNo] += entry[i];
         }
       }
-    } else if (fields[1].compareTo("way") == 0) {
-      // Serial.println("way found");
-      addWay();
-    } else if (fields[1].compareTo("nd") == 0) {
-      bool found = false;
-      int id = -1;
+      entry = "";
 
-      for (int i = 2; i < 10; i++) {
-        String currentField = fields[i];
-        int fieldIndex = 0;
-        String key = "";
-        String value = "";
-        while (currentField[fieldIndex] != '=' &&
-               fieldIndex < currentField.length()) {
-          key += currentField[fieldIndex];
-          fieldIndex++;
-        }
-        fieldIndex++;
-        while (fieldIndex < currentField.length()) {
-          value += currentField[fieldIndex];
-          fieldIndex++;
-        }
-        value = value.substring(1, value.length() - 1);
-
-        if (key.compareTo("ref") == 0) {
-          id = value.toInt();
-          if (id < 0) {
-            id = -id;
+      if (fields[1].compareTo("node") == 0) {
+        int found = 0;
+        int id;
+        float latitude, longitude;
+        for (int i = 2; i < 10; i++) {
+          String currentField = fields[i];
+          int fieldIndex = 0;
+          String key = "";
+          String value = "";
+          while (currentField[fieldIndex] != '=' &&
+                 fieldIndex < currentField.length()) {
+            key += currentField[fieldIndex];
+            fieldIndex++;
           }
-          // Serial.println(id);
-          found = true;
+          fieldIndex++;
+          while (fieldIndex < currentField.length()) {
+            value += currentField[fieldIndex];
+            fieldIndex++;
+          }
+          value = value.substring(1, value.length() - 1);
+
+          if (key.compareTo("id") == 0) {
+            id = value.toInt();
+            if (id < 0) {
+              id = -id;
+            }
+            found++;
+          } else if (key.compareTo("lat") == 0) {
+            latitude = value.toFloat();
+            found++;
+          } else if (key.compareTo("lon") == 0) {
+            longitude = value.toFloat();
+            found++;
+          }
+          if (found == 3) {
+            // Serial.println("found node");
+            if (iter == 0) {
+              numberOfWaypoints++;
+            } else if (iter == 1) {
+              addWaypoint((uint16_t)id, NavPoint(latitude, longitude));
+            }
+            break;
+          }
         }
-        if (found) {
-          addPointToWay((uint16_t)id);
-          break;
+      } else if (fields[1].compareTo("way") == 0) {
+        // Serial.println("way found");
+        if (iter == 0) {
+          numberOfWays++;
+        } else if (iter == 1) {
+          addWay();
+        }
+      } else if (fields[1].compareTo("nd") == 0) {
+        bool found = false;
+        int id = -1;
+
+        for (int i = 2; i < 10; i++) {
+          String currentField = fields[i];
+          int fieldIndex = 0;
+          String key = "";
+          String value = "";
+          while (currentField[fieldIndex] != '=' &&
+                 fieldIndex < currentField.length()) {
+            key += currentField[fieldIndex];
+            fieldIndex++;
+          }
+          fieldIndex++;
+          while (fieldIndex < currentField.length()) {
+            value += currentField[fieldIndex];
+            fieldIndex++;
+          }
+          value = value.substring(1, value.length() - 1);
+
+          if (key.compareTo("ref") == 0) {
+            id = value.toInt();
+            if (id < 0) {
+              id = -id;
+            }
+            // Serial.println(id);
+            found = true;
+          }
+          if (found) {
+            if (iter == 0) {
+              currentWayLength++;
+            } else if (iter == 1) {
+              addPointToWay((uint16_t)id);
+            }
+            break;
+          }
         }
       }
     }
   }
 
-  parseLog = "Parsed osm file with " + String(errors, DEC) + " errors....\n" +
+  parseLog = "Parsed osm file with " + String(errors, DEC) + " errors and " +
+             String(warnings, DEC) + " warnings...\n" +
              String(numberOfWaypoints, DEC) + " of " +
-             String(MAP_WAYPOINTS_MAX) + " available waypoints were used...\n" +
-             String(numberOfWays, DEC) + " of " + String(MAP_WAYS_MAX) +
-             " available ways were used...\n";
+             String(MAP_WAYPOINTS_MAX) + " available waypoints were used (" +
+             String(numberOfWaypoints * (sizeof(NavPoint) + 2), DEC) +
+             " Byte)...\n" + String(pointsInWay, DEC) + " of " +
+             String(MAP_POINTSINWAY_MAX) +
+             " available references to points in ways were used (" +
+             String(pointsInWay * 2, DEC) + " Byte)...\n";
   if (log) {
     Serial.println("");
     Serial.println(parseLog);
-    Serial.println("Distribution of waypoints in ways (Maximum of " +
-                   String(MAP_WAYLENGTH_MAX, DEC) + " points per way:");
+    Serial.println("Distribution of waypoints in ways:");
     for (int i = 0; i < numberOfWays; i++) {
       Serial.println("Way " + String(i, DEC) + ": " +
                      String(wayLengths[i], DEC));
@@ -173,6 +213,7 @@ bool Map::addWaypoint(uint16_t id, NavPoint point) {
     if (numberOfWaypoints >= MAP_WAYPOINTS_MAX) {
       numberOfWaypoints = MAP_WAYPOINTS_MAX;
       logMessage += "ERROR: No more space for waypoints...\n";
+      errors++;
     } else {
       numberOfWaypoints++;
       waypoints[numberOfWaypoints - 1] = point;
@@ -184,6 +225,7 @@ bool Map::addWaypoint(uint16_t id, NavPoint point) {
   } else {
     logMessage =
         "WARNING: Waypoint with id " + String(id, DEC) + " already exists...\n";
+    warnings++;
   }
 
   if (log) {
@@ -204,10 +246,10 @@ bool Map::addWaypoint(NavPoint point) {
 }
 
 void Map::flushWaypoints() {
-  numberOfWaypoints = 0;
-  for (int i = 0; i < MAP_WAYPOINTS_MAX; i++) {
+  for (int i = 0; i < numberOfWaypoints; i++) {
     waypointIDs[i] = 0;
   }
+  numberOfWaypoints = 0;
   if (log) {
     Serial.println("");
     Serial.println("Flushing waypoints...");
@@ -216,21 +258,15 @@ void Map::flushWaypoints() {
 
 bool Map::addWay() {
   String logMessage = "Trying to add way...\n";
-  bool success = false;
-  if (numberOfWays >= MAP_WAYS_MAX) {
-    numberOfWays = MAP_WAYS_MAX;
-    logMessage += "ERROR: No more space for ways...\n";
-  } else {
-    numberOfWays++;
-    logMessage += "SUCCESS: Added way number " + String(numberOfWays) + "...\n";
-  }
-  success = true;
+
+  numberOfWays++;
+  logMessage += "SUCCESS: Added way number " + String(numberOfWays) + "...\n";
 
   if (log) {
     Serial.println("");
     Serial.print(logMessage);
   }
-  return success;
+  return true;
 }
 
 bool Map::addPointToWay(uint16_t id) {
@@ -239,17 +275,17 @@ bool Map::addPointToWay(uint16_t id) {
                       " to way number " + String(numberOfWays, DEC) + "...\n";
   if (numberOfWays <= 0) {
     logMessage += "ERROR: Currently no way added...\n";
+    errors++;
   } else {
     int currentPoint = wayLengths[numberOfWays - 1];
     currentPoint++;
     {
-      if (currentPoint >= MAP_WAYLENGTH_MAX) {
-        logMessage += "ERROR: No more space for waypoints in this way...\n";
-      } else {
-        wayLengths[numberOfWays - 1] = currentPoint;
-        for (int i = 0; i < numberOfWaypoints; i++) {
-          if (waypointIDs[i] == id) {
-            ways[numberOfWays - 1][currentPoint - 1] = i;
+      wayLengths[numberOfWays - 1] = currentPoint;
+      for (int i = 0; i < numberOfWaypoints; i++) {
+        if (waypointIDs[i] == id) {
+          // ways[numberOfWays - 1][currentPoint - 1] = i;
+          bool set = setWayArray(numberOfWays - 1, currentPoint - 1, i);
+          if (set) {
             logMessage += "SUCCESS: Added waypoint with id " + String(id, DEC) +
                           " and index " + String(i, DEC) + " to way number " +
                           String(numberOfWays, DEC) + " at position " +
@@ -257,14 +293,17 @@ bool Map::addPointToWay(uint16_t id) {
             logMessage +=
                 "Coordinates: " + String(waypoints[i].getLatitude(), 7) + ", " +
                 String(waypoints[i].getLongitude(), 7) + "...\n";
-            success = true;
-            break;
+          } else {
+            logMessage += "Waypoint references overfilled...\n";
           }
+          success = true;
+          break;
         }
-        if (!success) {
-          logMessage += "ERROR: Waypoint with id " + String(id, DEC) +
-                        " could not be found...\n";
-        }
+      }
+      if (!success) {
+        logMessage += "ERROR: Waypoint with id " + String(id, DEC) +
+                      " could not be found...\n";
+        errors++;
       }
     }
   }
@@ -277,10 +316,10 @@ bool Map::addPointToWay(uint16_t id) {
 }
 
 void Map::flushWays() {
-  numberOfWays = 0;
-  for (int i = 0; i < MAP_WAYS_MAX; i++) {
+  for (int i = 0; i < numberOfWays; i++) {
     wayLengths[i] = 0;
   }
+  numberOfWays = 0;
   if (log) {
     Serial.println("");
     Serial.println("Flushing ways...");
@@ -310,7 +349,8 @@ uint16_t Map::getNumberOfPointsInWay(uint16_t index) {
 NavPoint Map::getWaypointFromWay(uint16_t wayIndex, uint16_t waypointIndex) {
   NavPoint waypoint;
   if (wayIndex < numberOfWays && waypointIndex < wayLengths[wayIndex]) {
-    waypoint = waypoints[ways[wayIndex][waypointIndex]];
+    waypoint = waypoints[getWayArray(
+        wayIndex, waypointIndex)]; // waypoints[ways[wayIndex][waypointIndex]];
   }
   return waypoint;
 }
@@ -335,12 +375,12 @@ ArduinoQueue<uint16_t> Map::getAdjacents(uint16_t pointIndex) {
   ArduinoQueue<uint16_t> adjacents(numberOfWaypoints);
   for (int w = 0; w < numberOfWays; w++) {
     for (int p = 0; p < wayLengths[w]; p++) {
-      if (pointIndex == ways[w][p]) {
+      if (pointIndex == getWayArray(w, p) /*ways[w][p]*/) {
         if (p > 0) {
-          adjacents.enqueue(ways[w][p - 1]);
+          adjacents.enqueue(getWayArray(w, p - 1) /*ways[w][p - 1]*/);
         }
         if (p < wayLengths[w]) {
-          adjacents.enqueue(ways[w][p + 1]);
+          adjacents.enqueue(getWayArray(w, p + 1) /*ways[w][p + 1]*/);
         }
       }
     }
@@ -373,6 +413,7 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     Serial.println("Initializing routeplanner...");
     Serial.print(routeLog);
   }
+
   for (int i = 0; i < numberOfWaypoints; i++) {
     distances[i] = endless;
     previousVertexes[i] = unknown;
@@ -399,10 +440,12 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     visitedVertexes[nextIndex] = true;
 
     ArduinoQueue<uint16_t> adjacents = getAdjacents(nextIndex);
+
     while (!adjacents.isEmpty()) {
       int adj = adjacents.dequeue();
       float distance = distances[nextIndex] +
                        waypoints[nextIndex].calculateDistance(waypoints[adj]);
+
       if (distance < distances[adj] || distances[adj] == endless) {
         distances[adj] = distance;
         previousVertexes[adj] = nextIndex;
@@ -410,6 +453,7 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     }
 
     allVisited = true;
+
     for (int i = 0; i < numberOfWaypoints; i++) {
       if (!visitedVertexes[i]) {
         allVisited = false;
@@ -432,8 +476,9 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     if (log) {
       Serial.print(wayLog);
     }
-    if (previousVertexes[point] == unknown || iteration > MAP_WAYPOINTS_MAX) {
+    if (previousVertexes[point] == unknown || iteration > numberOfWaypoints) {
       wayLog = "ERROR: faulty way...\n";
+      errors++;
       routeLog += wayLog;
       if (log) {
         Serial.print(wayLog);
@@ -461,3 +506,25 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
 }
 
 String Map::getRouteLog() { return routeLog; }
+
+bool Map::setWayArray(uint16_t wayNr, uint16_t index, uint16_t pointId) {
+  uint16_t offset = index;
+  for (uint16_t i = 0; i < wayNr; i++) {
+    offset += wayLengths[i];
+  }
+  if (offset < pointsInWay) {
+    wayArray[offset] = pointId;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+uint16_t Map::getWayArray(uint16_t wayNr, uint16_t index) {
+  uint16_t offset = index;
+  for (uint16_t i = 0; i < wayNr; i++) {
+    offset += wayLengths[i];
+  }
+
+  return wayArray[offset];
+}
