@@ -424,7 +424,7 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   }
 
   distances[startIndex] = 0.0;
-  previousVertexes[startIndex] = destIndex;
+  previousVertexes[startIndex] = startIndex;
 
   int nextIndex = unknown;
   bool allVisited = false;
