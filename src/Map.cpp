@@ -393,9 +393,12 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int startIndex = getClosestWaypoint(destination);
   int destIndex = getClosestWaypoint(start);
 
-  float distances[numberOfWaypoints];
-  int previousVertexes[numberOfWaypoints];
-  bool visitedVertexes[numberOfWaypoints];
+  //float distances[numberOfWaypoints];
+  //int previousVertexes[numberOfWaypoints];
+  //bool visitedVertexes[numberOfWaypoints];
+	float *distances = new float[numberOfWaypoints];
+	int *previousVertexes = new int[numberOfWaypoints];
+	bool *visitedVertexes = new bool[numberOfWaypoints];
 
   float endless = -1.0;
   int unknown = -1;
@@ -497,6 +500,10 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
       route.enqueue(point);
     }
   }
+
+	delete [] distances;
+	delete [] previousVertexes;
+	delete [] visitedVertexes;
 
   Serial.println(
       "************************************************************************"
