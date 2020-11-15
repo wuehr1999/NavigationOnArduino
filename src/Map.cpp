@@ -393,12 +393,12 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int startIndex = getClosestWaypoint(destination);
   int destIndex = getClosestWaypoint(start);
 
-  //float distances[numberOfWaypoints];
-  //int previousVertexes[numberOfWaypoints];
-  //bool visitedVertexes[numberOfWaypoints];
-	float *distances = new float[numberOfWaypoints];
-	int *previousVertexes = new int[numberOfWaypoints];
-	bool *visitedVertexes = new bool[numberOfWaypoints];
+  // float distances[numberOfWaypoints];
+  // int previousVertexes[numberOfWaypoints];
+  // bool visitedVertexes[numberOfWaypoints];
+  float *distances = new float[numberOfWaypoints];
+  int *previousVertexes = new int[numberOfWaypoints];
+  bool *visitedVertexes = new bool[numberOfWaypoints];
 
   float endless = -1.0;
   int unknown = -1;
@@ -501,9 +501,9 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     }
   }
 
-	delete [] distances;
-	delete [] previousVertexes;
-	delete [] visitedVertexes;
+  delete[] distances;
+  delete[] previousVertexes;
+  delete[] visitedVertexes;
 
   Serial.println(
       "************************************************************************"
@@ -534,4 +534,38 @@ uint16_t Map::getWayArray(uint16_t wayNr, uint16_t index) {
   }
 
   return wayArray[offset];
+}
+
+NavPoint Map::getUpperLeftCorner() {
+  float latMax = 0.0;
+  float lonMin = 181.0;
+
+  for (int i = 0; i < numberOfWaypoints; i++) {
+    NavPoint current = waypoints[i];
+    if (current.getLatitude() > latMax) {
+      latMax = current.getLatitude();
+    }
+    if (current.getLongitude() < lonMin) {
+      lonMin = current.getLongitude();
+    }
+  }
+
+  return NavPoint(latMax, lonMin);
+}
+
+NavPoint Map::getLowerRightCorner() {
+  float latMin = 91.0;
+  float lonMax = 0.0;
+
+  for (int i = 0; i < numberOfWaypoints; i++) {
+    NavPoint current = waypoints[i];
+    if (current.getLatitude() < latMin) {
+      latMin = current.getLatitude();
+    }
+    if (current.getLongitude() > lonMax) {
+      lonMax = current.getLongitude();
+    }
+  }
+
+  return NavPoint(latMin, lonMax);
 }

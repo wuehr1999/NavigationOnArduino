@@ -404,7 +404,9 @@ Map osmMap;
 DogGraphicDisplay dog;
 
 float metersPerPixel;
-NavPoint startPoint;
+NavPoint upperLeftPoint, lowerRightPoint;
+
+int canvasSizeX, canvasSizeY;
 
 void setup() {
   Serial.begin(115200);
@@ -414,15 +416,31 @@ void setup() {
 
   dog.begin(6, 0, 0, 0, 1, DOGM128);
   dog.clear();
-  dog.createCanvas(128, 60, 0, 0);
+  canvasSizeX = 128;
+  canvasSizeY = 60;
+  dog.createCanvas(canvasSizeX, canvasSizeY, 0, 0);
 
   osmMap.begin(true);      // set up map
   osmMap.parse(osmString); // parse
 
-  metersPerPixel = 6.0; // set resolution
+  // get boundaries of map and fit to canvas
+  upperLeftPoint = osmMap.getUpperLeftCorner();
+  lowerRightPoint = osmMap.getLowerRightCorner();
 
-  startPoint.setLatitude(49.002015);
-  startPoint.setLongitude(12.819931);
+  float distX =
+      upperLeftPoint.calculateDistance(NavPoint(
+          upperLeftPoint.getLatitude(), lowerRightPoint.getLongitude())) /
+      128;
+  float distY =
+      upperLeftPoint.calculateDistance(NavPoint(
+          lowerRightPoint.getLatitude(), upperLeftPoint.getLongitude())) /
+      60;
+
+  metersPerPixel = distX;
+
+  if (distX < distY) {
+    metersPerPixel = distY;
+  }
 
   // draw crossings
   for (int i = 0; i < osmMap.getNumberOfWaypoints(); i++) {
@@ -430,7 +448,7 @@ void setup() {
 
     int x;
     int y;
-    current.xyPixelsFromStartPoint(startPoint, &x, &y, metersPerPixel);
+    current.xyPixelsFromStartPoint(upperLeftPoint, &x, &y, metersPerPixel);
     ArduinoQueue<uint16_t> adj = osmMap.getAdjacents(i);
     if (adj.itemCount() > 2) {
       dog.drawCross(x, y, 1, 1);
@@ -445,33 +463,12 @@ void setup() {
 
       int x1, y1, x2, y2;
 
-      p1.xyPixelsFromStartPoint(startPoint, &x1, &y1, metersPerPixel);
-      p2.xyPixelsFromStartPoint(startPoint, &x2, &y2, metersPerPixel);
+      p1.xyPixelsFromStartPoint(upperLeftPoint, &x1, &y1, metersPerPixel);
+      p2.xyPixelsFromStartPoint(upperLeftPoint, &x2, &y2, metersPerPixel);
 
       dog.drawLine(x1, y1, x2, y2);
     }
   }
 }
 
-void loop() {
-
-  // set start and destination points
-  NavPoint start(49.001342, 12.822391);
-  NavPoint destination(48.999811, 12.824013);
-
-  ArduinoQueue<uint16_t> way = osmMap.planRoute(start, destination); // plan and get queue with ordered waypoints
-
-  while (!way.isEmpty()) {
-    int pointIndex = way.dequeue();
-
-    NavPoint current = osmMap.getWaypoint(pointIndex);
-
-    int x;
-    int y;
-    current.xyPixelsFromStartPoint(startPoint, &x, &y, metersPerPixel);
-
-    dog.drawCross(x, y, 2, 2);
-  }
-
-  delay(3000);
-}
+void loop() {}

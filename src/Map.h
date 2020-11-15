@@ -134,8 +134,21 @@ public:
 
   /*!
    * @brief Returns summary log from route planning
+   * @retval log string
    */
   String getRouteLog();
+
+  /*!
+   * @brief Returns coordinates of upper left corner of the map
+   * @retval NavPoint
+   */
+  NavPoint getUpperLeftCorner();
+
+  /*!
+   * @brief Returns coordinates of lower right corner of the map
+   * @retval NavPoint
+   */
+  NavPoint getLowerRightCorner();
 
 private:
   bool log;
