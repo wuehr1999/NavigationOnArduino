@@ -418,7 +418,6 @@ void setup() {
   dog.clear();
   canvasSizeX = 128;
   canvasSizeY = 60;
-  dog.createCanvas(canvasSizeX, canvasSizeY, 0, 0);
 
   osmMap.begin(true);      // set up map
   osmMap.parse(osmString); // parse
@@ -441,6 +440,20 @@ void setup() {
   if (distX < distY) {
     metersPerPixel = distY;
   }
+}
+
+void loop() {
+
+  dog.deleteCanvas(); // !!! DELETE CANVAS TO PROVIDE ENOUGH MEMORY
+
+	// plan route
+  NavPoint start(49.001342, 12.822391);
+  NavPoint destination(48.999811, 12.824013);
+
+  ArduinoQueue<uint16_t> way = osmMap.planRoute(start, destination);
+
+	// !!! RECREATE CANVAS
+  dog.createCanvas(canvasSizeX, canvasSizeY, 0, 0);
 
   // draw crossings
   for (int i = 0; i < osmMap.getNumberOfWaypoints(); i++) {
@@ -469,6 +482,19 @@ void setup() {
       dog.drawLine(x1, y1, x2, y2);
     }
   }
-}
 
-void loop() {}
+  while(!way.isEmpty()) // draw route
+  {
+    int pointIndex = way.dequeue();
+    
+    NavPoint current = osmMap.getWaypoint(pointIndex);
+
+    int x;
+    int y;   
+    current.xyPixelsFromStartPoint(upperLeftPoint, &x, &y, metersPerPixel);
+
+    dog.drawCross(x, y, 1, 1);
+  }
+
+	delay(1000);
+}

@@ -65,13 +65,11 @@ void Map::parse(const char *osmString) {
         index++;
       }
       entry += ">";
-      // Serial.println(entry);
       int fieldNo = 0;
       String fields[10];
 
       for (int i = 0; i < entry.length(); i++) {
         if (entry[i] == ' ' || entry[i] == '<' || entry[i] == '>') {
-          // Serial.println(fields[fieldNo]);
           fieldNo++;
           fields[fieldNo] = "";
         } else {
@@ -115,7 +113,6 @@ void Map::parse(const char *osmString) {
             found++;
           }
           if (found == 3) {
-            // Serial.println("found node");
             if (iter == 0) {
               numberOfWaypoints++;
             } else if (iter == 1) {
@@ -125,7 +122,6 @@ void Map::parse(const char *osmString) {
           }
         }
       } else if (fields[1].compareTo("way") == 0) {
-        // Serial.println("way found");
         if (iter == 0) {
           numberOfWays++;
         } else if (iter == 1) {
@@ -157,7 +153,6 @@ void Map::parse(const char *osmString) {
             if (id < 0) {
               id = -id;
             }
-            // Serial.println(id);
             found = true;
           }
           if (found) {
@@ -283,7 +278,6 @@ bool Map::addPointToWay(uint16_t id) {
       wayLengths[numberOfWays - 1] = currentPoint;
       for (int i = 0; i < numberOfWaypoints; i++) {
         if (waypointIDs[i] == id) {
-          // ways[numberOfWays - 1][currentPoint - 1] = i;
           bool set = setWayArray(numberOfWays - 1, currentPoint - 1, i);
           if (set) {
             logMessage += "SUCCESS: Added waypoint with id " + String(id, DEC) +
@@ -350,7 +344,7 @@ NavPoint Map::getWaypointFromWay(uint16_t wayIndex, uint16_t waypointIndex) {
   NavPoint waypoint;
   if (wayIndex < numberOfWays && waypointIndex < wayLengths[wayIndex]) {
     waypoint = waypoints[getWayArray(
-        wayIndex, waypointIndex)]; // waypoints[ways[wayIndex][waypointIndex]];
+        wayIndex, waypointIndex)];
   }
   return waypoint;
 }
@@ -375,12 +369,12 @@ ArduinoQueue<uint16_t> Map::getAdjacents(uint16_t pointIndex) {
   ArduinoQueue<uint16_t> adjacents(numberOfWaypoints);
   for (int w = 0; w < numberOfWays; w++) {
     for (int p = 0; p < wayLengths[w]; p++) {
-      if (pointIndex == getWayArray(w, p) /*ways[w][p]*/) {
+      if (pointIndex == getWayArray(w, p)) {
         if (p > 0) {
-          adjacents.enqueue(getWayArray(w, p - 1) /*ways[w][p - 1]*/);
+          adjacents.enqueue(getWayArray(w, p - 1));
         }
         if (p < wayLengths[w]) {
-          adjacents.enqueue(getWayArray(w, p + 1) /*ways[w][p + 1]*/);
+          adjacents.enqueue(getWayArray(w, p + 1));
         }
       }
     }
@@ -393,9 +387,6 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int startIndex = getClosestWaypoint(destination);
   int destIndex = getClosestWaypoint(start);
 
-  // float distances[numberOfWaypoints];
-  // int previousVertexes[numberOfWaypoints];
-  // bool visitedVertexes[numberOfWaypoints];
   float *distances = new float[numberOfWaypoints];
   int *previousVertexes = new int[numberOfWaypoints];
   bool *visitedVertexes = new bool[numberOfWaypoints];
@@ -429,6 +420,8 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int nextIndex = unknown;
   bool allVisited = false;
 
+	ArduinoQueue<uint16_t> adjacents;
+
   while (!allVisited) {
     float minDist = endless;
 
@@ -440,12 +433,15 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
         nextIndex = i;
       }
     }
+
     visitedVertexes[nextIndex] = true;
 
     ArduinoQueue<uint16_t> adjacents = getAdjacents(nextIndex);
 
     while (!adjacents.isEmpty()) {
-      int adj = adjacents.dequeue();
+
+      uint16_t adj = adjacents.dequeue();
+
       float distance = distances[nextIndex] +
                        waypoints[nextIndex].calculateDistance(waypoints[adj]);
 
