@@ -1,4 +1,5 @@
 #include "NavPoint.h"
+
 #include <Arduino.h>
 NavPoint::NavPoint() { NavPoint(0, 0); }
 
@@ -82,7 +83,6 @@ float NavPoint::calculateDistanceFromTrack(NavPoint trackpoint1,
 
 float NavPoint::calculateDeltaAngle(float courseHeading,
                                     NavPoint destinationPoint) {
-
   float destinationBearing = calculateBearing(destinationPoint);
 
   float deltaAngle = destinationBearing - courseHeading;

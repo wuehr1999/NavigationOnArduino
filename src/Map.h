@@ -31,7 +31,7 @@ public:
    * A osm string to be included in the code can be generated with the
    * osmfileToString tool
    */
-  void parse(const char *osmString);
+  bool parse(const char *osmString);
 
   /*!
    * @brief Returns summary log from parsing
@@ -167,6 +167,9 @@ private:
 
   bool setWayArray(uint16_t wayNr, uint16_t index, uint16_t pointId);
   uint16_t getWayArray(uint16_t wayNr, uint16_t index);
+
+	bool parseNode(String *fields, int length, bool add = true);
+	bool parseRef(String *fields, int length, bool add = true);
 };
 
 #endif

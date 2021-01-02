@@ -21,8 +21,7 @@ void Map::begin(bool log) {
 
 void Map::begin() { begin(true); }
 
-void Map::parse(const char *osmString) {
-
+bool Map::parse(const char *osmString) {
   int len = strlen(osmString);
 
   int currentWayLength = 0;
@@ -31,7 +30,6 @@ void Map::parse(const char *osmString) {
   warnings = 0;
 
   for (int iter = 0; iter < 2; iter++) {
-
     if (iter == 1) {
       free(waypointIDs);
       free(waypoints);
@@ -81,47 +79,10 @@ void Map::parse(const char *osmString) {
       entry = "";
 
       if (fields[1].compareTo("node") == 0) {
-        int found = 0;
-        int id;
-        float latitude, longitude;
-        for (int i = 2; i < 10; i++) {
-          String currentField = fields[i];
-          int fieldIndex = 0;
-          String key = "";
-          String value = "";
-          while (currentField[fieldIndex] != '=' &&
-                 fieldIndex < currentField.length()) {
-            key += currentField[fieldIndex];
-            fieldIndex++;
-          }
-          fieldIndex++;
-          while (fieldIndex < currentField.length()) {
-            value += currentField[fieldIndex];
-            fieldIndex++;
-          }
-          value = value.substring(1, value.length() - 1);
-
-          if (key.compareTo("id") == 0) {
-            id = value.toInt();
-            if (id < 0) {
-              id = -id;
-            }
-            found++;
-          } else if (key.compareTo("lat") == 0) {
-            latitude = value.toFloat();
-            found++;
-          } else if (key.compareTo("lon") == 0) {
-            longitude = value.toFloat();
-            found++;
-          }
-          if (found == 3) {
-            if (iter == 0) {
-              numberOfWaypoints++;
-            } else if (iter == 1) {
-              addWaypoint((uint16_t)id, NavPoint(latitude, longitude));
-            }
-            break;
-          }
+        if (iter == 0 && parseNode(fields, fieldNo, false)) {
+          numberOfWaypoints++;
+        } else if (iter == 1) {
+          parseNode(fields, fieldNo);
         }
       } else if (fields[1].compareTo("way") == 0) {
         if (iter == 0) {
@@ -130,41 +91,10 @@ void Map::parse(const char *osmString) {
           addWay();
         }
       } else if (fields[1].compareTo("nd") == 0) {
-        bool found = false;
-        int id = -1;
-
-        for (int i = 2; i < 10; i++) {
-          String currentField = fields[i];
-          int fieldIndex = 0;
-          String key = "";
-          String value = "";
-          while (currentField[fieldIndex] != '=' &&
-                 fieldIndex < currentField.length()) {
-            key += currentField[fieldIndex];
-            fieldIndex++;
-          }
-          fieldIndex++;
-          while (fieldIndex < currentField.length()) {
-            value += currentField[fieldIndex];
-            fieldIndex++;
-          }
-          value = value.substring(1, value.length() - 1);
-
-          if (key.compareTo("ref") == 0) {
-            id = value.toInt();
-            if (id < 0) {
-              id = -id;
-            }
-            found = true;
-          }
-          if (found) {
-            if (iter == 0) {
-              currentWayLength++;
-            } else if (iter == 1) {
-              addPointToWay((uint16_t)id);
-            }
-            break;
-          }
+        if (iter == 0 && parseRef(fields, fieldNo, false)) {
+          currentWayLength++;
+        } else if (iter == 1) {
+          parseRef(fields, fieldNo);
         }
       }
     }
@@ -191,6 +121,98 @@ void Map::parse(const char *osmString) {
         "**********************************************************************"
         "************************************************************");
   }
+
+  return errors > 0;
+}
+
+bool Map::parseNode(String *fields, int length, bool add) {
+  bool success = false;
+  int found = 0;
+  int id;
+  float latitude, longitude;
+  for (int i = 2; i < length; i++) {
+    String currentField = fields[i];
+    int fieldIndex = 0;
+    String key = "";
+    String value = "";
+
+    while (currentField[fieldIndex] != '=' &&
+           fieldIndex < currentField.length()) {
+      key += currentField[fieldIndex];
+      fieldIndex++;
+    }
+    fieldIndex++;
+    while (fieldIndex < currentField.length()) {
+      value += currentField[fieldIndex];
+      fieldIndex++;
+    }
+    value = value.substring(1, value.length() - 1);
+
+    if (key.compareTo("id") == 0) {
+      id = value.toInt();
+      if (id < 0) {
+        id = -id;
+      }
+      found++;
+    } else if (key.compareTo("lat") == 0) {
+      latitude = value.toFloat();
+      found++;
+    } else if (key.compareTo("lon") == 0) {
+      longitude = value.toFloat();
+      found++;
+    }
+    if (found == 3) {
+      success = true;
+      if (add) {
+        success = addWaypoint((uint16_t)id, NavPoint(latitude, longitude));
+      }
+      break;
+    }
+  }
+  fields = NULL;
+  return success;
+}
+
+bool Map::parseRef(String *fields, int length, bool add) {
+  bool success = false;
+
+  bool found = false;
+  int id = -1;
+
+  for (int i = 2; i < length; i++) {
+    String currentField = fields[i];
+    int fieldIndex = 0;
+    String key = "";
+    String value = "";
+    while (currentField[fieldIndex] != '=' &&
+           fieldIndex < currentField.length()) {
+      key += currentField[fieldIndex];
+      fieldIndex++;
+    }
+    fieldIndex++;
+    while (fieldIndex < currentField.length()) {
+      value += currentField[fieldIndex];
+      fieldIndex++;
+    }
+    value = value.substring(1, value.length() - 1);
+
+    if (key.compareTo("ref") == 0) {
+      id = value.toInt();
+      if (id < 0) {
+        id = -id;
+      }
+      found = true;
+    }
+    if (found) {
+      if (add) {
+        success = addPointToWay((uint16_t)id);
+      } else {
+        success = true;
+      }
+      break;
+    }
+  }
+  return success;
 }
 
 String Map::getParseLog() { return parseLog; }
@@ -345,8 +367,7 @@ uint16_t Map::getNumberOfPointsInWay(uint16_t index) {
 NavPoint Map::getWaypointFromWay(uint16_t wayIndex, uint16_t waypointIndex) {
   NavPoint waypoint;
   if (wayIndex < numberOfWays && waypointIndex < wayLengths[wayIndex]) {
-    waypoint = waypoints[getWayArray(
-        wayIndex, waypointIndex)];
+    waypoint = waypoints[getWayArray(wayIndex, waypointIndex)];
   }
   return waypoint;
 }
@@ -422,7 +443,7 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
   int nextIndex = unknown;
   bool allVisited = false;
 
-	ArduinoQueue<uint16_t> adjacents;
+  ArduinoQueue<uint16_t> adjacents;
 
   while (!allVisited) {
     float minDist = endless;
@@ -441,7 +462,6 @@ ArduinoQueue<uint16_t> Map::planRoute(NavPoint start, NavPoint destination) {
     ArduinoQueue<uint16_t> adjacents = getAdjacents(nextIndex);
 
     while (!adjacents.isEmpty()) {
-
       uint16_t adj = adjacents.dequeue();
 
       float distance = distances[nextIndex] +
