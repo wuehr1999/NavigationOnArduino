@@ -43,7 +43,9 @@ void Map::parse(const char *osmString) {
       if (pointsInWay > MAP_POINTSINWAY_MAX) {
         pointsInWay = MAP_POINTSINWAY_MAX;
       }
+
       wayArray = (uint16_t *)malloc(pointsInWay * sizeof(uint16_t));
+
       flushWaypoints();
       flushWays();
     }
